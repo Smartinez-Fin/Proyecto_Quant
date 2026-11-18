@@ -1,0 +1,11 @@
+pandas>=2.2
+numpy>=2.0
+scipy>=1.13
+yfinance>=0.2.50
+requests>=2.32
+python-dotenv>=1.0
+plotly>=5.22
+streamlit>=1.38
+pyarrow>=17.0
+pytest>=8.3
+ipykernel>=6.29
