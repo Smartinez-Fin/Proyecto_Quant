@@ -9,6 +9,11 @@ Pregunta central: ¿puede el mercado accionario anticipar el deterioro creditici
 antes que las agencias de calificación? La especificación completa del método
 está en README.md (fuente de verdad metodológica).
 
+**Al iniciar una sesión, leer la sección "Bitácora de desarrollo" del README:**
+tiene el estado actual, las decisiones tomadas y el siguiente paso. Actualizarla
+al cerrar cada sesión de trabajo. El usuario prefiere que se le explique cada
+comando antes de correrlo. Cuenta de GitHub: `Smartinez-Fin`.
+
 ## Decisiones metodológicas
 - Horizonte T = 1 año; tasa libre de riesgo = T-Bill 1 año de FRED (serie `DGS1`,
   CSV público sin API key).

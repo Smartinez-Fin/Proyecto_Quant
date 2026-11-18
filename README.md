@@ -17,8 +17,10 @@
 7. [Instalación y uso](#instalación-y-uso)
 8. [Resultados](#resultados)
 9. [Limitaciones](#limitaciones)
-10. [Próximos pasos](#próximos-pasos)
-11. [Referencias](#referencias)
+10. [Hoja de ruta](#hoja-de-ruta)
+11. [Bitácora de desarrollo](#bitácora-de-desarrollo) — estado actual y cómo retomar
+12. [Próximos pasos](#próximos-pasos)
+13. [Referencias](#referencias)
 
 ---
 
@@ -139,11 +141,14 @@ Los datos de deuda de cada trimestre se usan **solo a partir de su fecha de publ
 ## Estructura del repositorio
 
 ```
-merton-default-monitor/
+Proyecto_Quant/
 ├── README.md
-├── CLAUDE.md               # Instrucciones de desarrollo
+├── CLAUDE.md               # Instrucciones de desarrollo para Claude Code
 ├── requirements.txt
 ├── .gitignore
+├── .env.example            # Plantilla de .env (SEC_USER_AGENT)
+├── .specify/               # Spec Kit: constitución, plantillas, scripts PowerShell
+├── .claude/skills/         # Spec Kit: comandos /speckit-* para Claude Code
 ├── src/
 │   ├── data.py             # Descarga y limpieza de datos
 │   ├── merton.py           # Modelo Merton/KMV: V, σ_V, DD, PD
@@ -153,9 +158,14 @@ merton-default-monitor/
 ├── app/
 │   └── streamlit_app.py    # Dashboard interactivo
 ├── tests/
+│   ├── test_smoke.py       # Test de humo (imports)
 │   └── test_merton.py      # Pruebas unitarias del modelo
 └── data/                   # Datos descargados (no versionados)
 ```
+
+> Archivos que existen hoy: la estructura completa con `src/*.py` vacíos
+> (solo docstring) y `tests/test_smoke.py`. `analisis.ipynb`,
+> `streamlit_app.py` y `test_merton.py` se crean en las fases 2–4.
 
 ---
 
@@ -163,8 +173,8 @@ merton-default-monitor/
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/Smartinez-Fin/merton-default-monitor.git
-cd merton-default-monitor
+git clone https://github.com/Smartinez-Fin/Proyecto_Quant.git
+cd Proyecto_Quant
 
 # 2. Crear y activar entorno virtual
 python -m venv .venv
@@ -227,6 +237,105 @@ streamlit run app/streamlit_app.py
 - [ ] Fase 2 — modelo Merton/KMV con tests
 - [ ] Fase 3 — análisis vs ratings y eventos de estrés
 - [ ] Fase 4 — dashboard Streamlit y README final
+
+---
+
+## Bitácora de desarrollo
+
+> Sección para retomar el proyecto en un computador nuevo. Se actualiza al
+> cerrar cada sesión de trabajo. Se reemplazará por un resumen corto en la fase 4.
+
+### Estado actual (2026-11-18)
+
+**Fase 0 completada.** Commits en `main`:
+
+| Commit | Contenido |
+|---|---|
+| `c8fcc4d` | Fase 0: estructura, `requirements.txt`, `.gitignore`, `.env.example`, README, CLAUDE.md, test de humo |
+| `c5db328` | Spec Kit inicializado (`.specify/`, `.claude/skills/`) |
+
+- Entorno verificado: Python 3.14.2, Git 2.54; dependencias instaladas
+  (pandas 3.1, numpy 2.5, scipy 1.18, yfinance 1.8, plotly 7.1, streamlit 1.67,
+  pytest 9.2). **9/9 tests de humo pasan.**
+- `src/data.py`, `src/merton.py`, `src/analysis.py` existen pero están vacíos.
+- Spec Kit instalado, pero **aún no se ha corrido ningún comando** `/speckit-*`
+  (la constitución en `.specify/memory/constitution.md` es la plantilla).
+- Repositorio en GitHub (privado): `https://github.com/Smartinez-Fin/Proyecto_Quant`
+  (remote `origin`).
+
+### Decisiones tomadas
+
+- **Metodología:** la de la sección [Metodología](#metodología) de este README
+  (punto de default KMV = CP + 0.5·LP, iteración Vassalou-Xing con tolerancia
+  1e-4, T = 1 año, PD = N(−DD)). Está resumida también en `CLAUDE.md`.
+- **Tasa libre de riesgo:** serie `DGS1` de FRED vía CSV público (sin API key).
+- **Universo:** 30 empresas no financieras del S&P 500, últimos 5 años.
+- **Sin look-ahead bias:** balances desde su fecha `filed` en la SEC.
+- **User-Agent SEC:** se lee de `SEC_USER_AGENT` en `.env` (nunca en el repo).
+- **Flujo de trabajo:** Spec Kit (spec-driven development) por fase:
+  constitución → specify → clarify → plan → tasks → implement.
+  Antes de implementar cada fase se explica el método en español; al terminar
+  se corren los tests y se propone el commit.
+- **Cuenta de GitHub:** `Smartinez-Fin`. Los commits usan el correo privado
+  `358480739+Smartinez-Fin@users.noreply.github.com` (no el correo personal).
+
+### Herramientas necesarias en un computador nuevo (Windows)
+
+| Herramienta | Para qué | Instalación |
+|---|---|---|
+| Python 3.11+ | Proyecto | `winget install Python.Python.3.13` |
+| Git | Control de versiones | `winget install Git.Git` |
+| GitHub CLI (`gh`) | Login y crear repo | `winget install GitHub.cli` |
+| uv | Instalar Spec Kit | `winget install astral-sh.uv` |
+| Spec Kit (`specify`) | Plantillas y flujo | `uv tool install specify-cli --from git+https://github.com/github/spec-kit.git` |
+| VS Code + Claude Code | Desarrollo asistido | Extensión "Claude Code" en VS Code |
+
+### Cómo retomar el proyecto paso a paso
+
+```powershell
+# 1. Traer el código desde GitHub (repo privado: pide login de Smartinez-Fin)
+git clone https://github.com/Smartinez-Fin/Proyecto_Quant.git
+cd Proyecto_Quant
+
+# 2. Identidad de git solo para este repo (correo privado de GitHub)
+git config user.name "Santiago"
+git config user.email "358480739+Smartinez-Fin@users.noreply.github.com"
+
+# 3. Login de GitHub con la cuenta Smartinez-Fin
+gh auth login --hostname github.com --git-protocol https --web
+gh auth setup-git
+
+# 4. Entorno virtual e instalación
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+
+# 5. Variables de entorno: copiar y editar con tu nombre y correo
+copy .env.example .env
+
+# 6. Verificar que todo funciona (debe dar 9 passed)
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+Notas:
+- Si `Activate.ps1` falla por la política de ejecución, usar directamente
+  `.\.venv\Scripts\python.exe` (como arriba) o correr
+  `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+- Si `specify` falla con *"failed to locate pyvenv.cfg"*, reinstalarlo con
+  `uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git`.
+- `specify init` necesita `--ignore-agent-tools` cuando Claude Code se usa
+  como extensión de VS Code (el comando `claude` no está en el PATH). No hace
+  falta volver a correrlo: `.specify/` y `.claude/skills/` ya están en el repo.
+- Los comandos `/speckit-*` aparecen en Claude Code al abrir la carpeta del
+  proyecto (si no aparecen, recargar la ventana de VS Code).
+
+### Siguiente paso
+
+1. Clonar el repo y seguir "Cómo retomar el proyecto paso a paso".
+2. En Claude Code: `/speckit-constitution` usando las reglas de `CLAUDE.md`.
+3. `/speckit-specify` para la **fase 1 (descarga de datos)** → `/speckit-clarify`
+   (definir las 30 empresas y la fuente de ratings) → `/speckit-plan` →
+   `/speckit-tasks` → `/speckit-implement`.
 
 ## Próximos pasos
 
