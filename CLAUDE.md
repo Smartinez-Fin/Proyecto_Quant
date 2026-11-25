@@ -55,6 +55,10 @@ data/           # datos crudos y procesados — NO se sube a git
   y respetan el límite de 10 peticiones/segundo.
 - Antes de implementar cada fase, explicar en español el método.
 - Al terminar cada fase: correr los tests, resumir resultados y proponer el commit.
+- **Nunca commitear ni hacer push a `main`**: todo cambio va en una rama nueva
+  (`git switch -c <rama>`) y se sube con `git push -u origin <rama>`. `main` solo
+  se actualiza mediante pull request en GitHub. Los nombres de rama van sin
+  espacios ni acentos (git no los admite), en minúsculas y con guiones.
 
 ## Fases
 0. Estructura del proyecto, entorno virtual y git.

@@ -245,7 +245,7 @@ streamlit run app/streamlit_app.py
 > Sección para retomar el proyecto en un computador nuevo. Se actualiza al
 > cerrar cada sesión de trabajo. Se reemplazará por un resumen corto en la fase 4.
 
-### Estado actual (2026-11-18)
+### Estado actual (2026-11-25)
 
 **Fase 0 completada.** Commits en `main`:
 
@@ -253,15 +253,34 @@ streamlit run app/streamlit_app.py
 |---|---|
 | `c8fcc4d` | Fase 0: estructura, `requirements.txt`, `.gitignore`, `.env.example`, README, CLAUDE.md, test de humo |
 | `c5db328` | Spec Kit inicializado (`.specify/`, `.claude/skills/`) |
+| `f21085c` | Commit inicial creado desde GitHub |
+| `01be628` | Bitácora de desarrollo y guía para retomar el proyecto |
+| `10e0784` | Merge de `origin/main` |
 
-- Entorno verificado: Python 3.14.2, Git 2.54; dependencias instaladas
-  (pandas 3.1, numpy 2.5, scipy 1.18, yfinance 1.8, plotly 7.1, streamlit 1.67,
-  pytest 9.2). **9/9 tests de humo pasan.**
-- `src/data.py`, `src/merton.py`, `src/analysis.py` existen pero están vacíos.
+**Entorno reconstruido el 2026-11-25** tras formatear el PC (Windows 11):
+
+- Python **3.12.10** (`winget install --id Python.Python.3.12 -e`), pip 26.3,
+  Git **2.56.1** (ya venía instalado).
+- `.venv` recreado. Dependencias instaladas y sin conflictos (`pip check` limpio):
+  pandas 3.1.1, numpy 2.5.5, scipy 1.18.1, yfinance 1.8.0, plotly 7.2.0,
+  streamlit 1.67.0, pyarrow 26.0.1, pytest 9.2.0, ipykernel 7.4.0.
+- **9/9 tests de humo pasan** (`pytest -v`; tarda ~50 s por los imports de
+  streamlit y yfinance).
+- `.env` creado a partir de `.env.example` con el `SEC_USER_AGENT` (nombre y
+  correo de contacto para la SEC; el archivo está ignorado por git).
+- Política de PowerShell: `RemoteSigned` en `CurrentUser`, así que
+  `Activate.ps1` funciona sin errores.
+- `gh` y `uv` **no se instalaron**: no hicieron falta, porque `.specify/` y
+  `.claude/skills/` ya están en el repo y el clonado no pidió credenciales.
+  `gh` solo será necesario para el primer `git push`.
+- `src/data.py`, `src/merton.py`, `src/analysis.py` existen pero están vacíos
+  (solo el docstring). **No hay código a medias.**
 - Spec Kit instalado, pero **aún no se ha corrido ningún comando** `/speckit-*`
-  (la constitución en `.specify/memory/constitution.md` es la plantilla).
-- Repositorio en GitHub (privado): `https://github.com/Smartinez-Fin/Proyecto_Quant`
-  (remote `origin`).
+  (la constitución en `.specify/memory/constitution.md` es la plantilla, y no
+  existe `.specify/specs/`).
+- Repositorio en GitHub: `https://github.com/Smartinez-Fin/Proyecto_Quant`
+  (remote `origin`). El clonado no pidió credenciales, así que el repo parece
+  ser **público**; pendiente verificarlo en Settings → General.
 
 ### Decisiones tomadas
 
@@ -283,30 +302,29 @@ streamlit run app/streamlit_app.py
 
 | Herramienta | Para qué | Instalación |
 |---|---|---|
-| Python 3.11+ | Proyecto | `winget install Python.Python.3.13` |
-| Git | Control de versiones | `winget install Git.Git` |
-| GitHub CLI (`gh`) | Login y crear repo | `winget install GitHub.cli` |
-| uv | Instalar Spec Kit | `winget install astral-sh.uv` |
-| Spec Kit (`specify`) | Plantillas y flujo | `uv tool install specify-cli --from git+https://github.com/github/spec-kit.git` |
+| Python 3.11+ | Proyecto | `winget install --id Python.Python.3.12 -e` |
+| Git | Control de versiones | `winget install --id Git.Git -e` |
+| GitHub CLI (`gh`) | *Opcional*: login para `git push` | `winget install GitHub.cli` |
+| uv | *Opcional*: solo para reinstalar Spec Kit | `winget install astral-sh.uv` |
+| Spec Kit (`specify`) | *Opcional*: ya está en el repo | `uv tool install specify-cli --from git+https://github.com/github/spec-kit.git` |
 | VS Code + Claude Code | Desarrollo asistido | Extensión "Claude Code" en VS Code |
 
 ### Cómo retomar el proyecto paso a paso
 
 ```powershell
-# 1. Traer el código desde GitHub (repo privado: pide login de Smartinez-Fin)
+# 1. Traer el código desde GitHub
 git clone https://github.com/Smartinez-Fin/Proyecto_Quant.git
 cd Proyecto_Quant
 
 # 2. Identidad de git solo para este repo (correo privado de GitHub)
-git config user.name "Santiago"
+git config user.name "Smartinez-Fin"
 git config user.email "358480739+Smartinez-Fin@users.noreply.github.com"
 
-# 3. Login de GitHub con la cuenta Smartinez-Fin
-gh auth login --hostname github.com --git-protocol https --web
-gh auth setup-git
+# 3. Permitir scripts locales, para que funcione Activate.ps1
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 
 # 4. Entorno virtual e instalación
-py -m venv .venv
+python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
@@ -315,12 +333,18 @@ copy .env.example .env
 
 # 6. Verificar que todo funciona (debe dar 9 passed)
 .\.venv\Scripts\python.exe -m pytest -q
+
+# 7. En VS Code: Ctrl+Shift+P -> "Python: Select Interpreter" -> .venv
 ```
 
 Notas:
-- Si `Activate.ps1` falla por la política de ejecución, usar directamente
-  `.\.venv\Scripts\python.exe` (como arriba) o correr
-  `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+- Para hacer `git push` hace falta iniciar sesión una vez:
+  `gh auth login --hostname github.com --git-protocol https --web` y
+  `gh auth setup-git` (requiere `winget install GitHub.cli`).
+- Llamar a `.\.venv\Scripts\python.exe` directamente funciona aunque el
+  entorno no esté activado; es la vía más fiable en Windows.
+- El proyecto está dentro de **OneDrive**. Si aparecen errores de "archivo en
+  uso" o lentitud, pausar la sincronización o mover el repo fuera de OneDrive.
 - Si `specify` falla con *"failed to locate pyvenv.cfg"*, reinstalarlo con
   `uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git`.
 - `specify init` necesita `--ignore-agent-tools` cuando Claude Code se usa
@@ -331,9 +355,8 @@ Notas:
 
 ### Siguiente paso
 
-1. Clonar el repo y seguir "Cómo retomar el proyecto paso a paso".
-2. En Claude Code: `/speckit-constitution` usando las reglas de `CLAUDE.md`.
-3. `/speckit-specify` para la **fase 1 (descarga de datos)** → `/speckit-clarify`
+1. En Claude Code: `/speckit-constitution` usando las reglas de `CLAUDE.md`.
+2. `/speckit-specify` para la **fase 1 (descarga de datos)** → `/speckit-clarify`
    (definir las 30 empresas y la fuente de ratings) → `/speckit-plan` →
    `/speckit-tasks` → `/speckit-implement`.
 
