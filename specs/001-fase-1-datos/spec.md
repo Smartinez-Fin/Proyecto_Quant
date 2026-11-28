@@ -14,6 +14,33 @@ acciones en circulación y deuda de corto y largo plazo con su fecha de
 publicación, tasa libre de riesgo diaria, y una tabla versionada de ratings
 crediticios con fuente y fecha de consulta."
 
+## Aclaraciones
+
+### Sesión 2026-11-25
+
+- P: ¿El periodo de cinco años debe ser una ventana fija con fechas concretas, o
+  una ventana móvil que termina el día en que se ejecuta la descarga?
+  → R: Ventana fija del 2021-11-25 al 2026-11-24, declarada en la configuración
+  del proyecto, porque la reproducibilidad del estudio pesa más que tener los
+  datos al día.
+- P: ¿Qué tiene que haber ocurrido para que una empresa entre en el grupo de
+  estrés? → R: Una rebaja de dos escalones o más por cualquier agencia dentro de
+  la ventana, o el cruce de grado de inversión a grado especulativo. Descarta
+  los ajustes de una sola muesca, que serían ruido.
+- P: ¿De qué fuente concreta se toman las calificaciones y sus cambios?
+  → R: Orden de prioridad declarado: agencia calificadora, luego prensa
+  financiera citando la nota concreta, y como respaldo el informe de la empresa
+  ante el regulador. Cada registro guarda cuál se usó, y sin fuente citable el
+  dato no entra.
+
+### Sesión 2026-11-28
+
+- P: ¿Cómo y cuándo se fija la lista nominal de las 30 empresas? → R: No se fija
+  en la especificación. Esta solo fija la regla y el reparto exacto (22 base
+  repartidas 3/5/8/4/2 por categoría de rating, más 8 de estrés); la lista se
+  construye y se versiona durante la implementación, y se revisa cuando cada
+  empresa ya tenga su calificación con fuente citada.
+
 ## Escenarios de uso y pruebas *(obligatorio)*
 
 ### Historia 1 — Panel diario de insumos del modelo (Prioridad: P1)
@@ -194,12 +221,17 @@ fecha de consulta.
   fuente o de fecha de consulta.
 - **FR-021**: El universo DEBE estar formado por 30 empresas no financieras —se
   excluyen bancos y aseguradoras— divididas en dos grupos declarados:
-  - **Grupo base** (~22 empresas): seleccionadas por una regla escrita **antes**
+  - **Grupo base** (22 empresas): seleccionadas por una regla escrita **antes**
     de observar resultados: pertenencia al S&P 500, cinco años completos de
-    historia y reparto por categoría de calificación crediticia.
-  - **Grupo de estrés** (~8 empresas): incluidas deliberadamente por haber
-    atravesado un episodio de deterioro crediticio en el periodo, para que los
-    estudios de evento tengan eventos que estudiar.
+    historia dentro de la ventana, y este reparto exacto por categoría de
+    calificación crediticia: **3** de AA o superior, **5** de A, **8** de BBB,
+    **4** de BB y **2** de B o inferior.
+  - **Grupo de estrés** (8 empresas): incluidas deliberadamente por haber
+    atravesado un episodio de deterioro crediticio dentro de la ventana,
+    entendido como una **rebaja de dos escalones o más** por parte de cualquier
+    agencia, **o** el cruce de grado de inversión a grado especulativo (de BBB−
+    a BB+ o inferior). Su inclusión es lo que permite que los estudios de evento
+    tengan eventos que estudiar.
 
   Cada empresa DEBE quedar etiquetada con su grupo y con el motivo de su
   inclusión. Los resultados de validación ordinal y los de estudio de evento
@@ -209,7 +241,12 @@ fecha de consulta.
   dentro del periodo de cinco años**, con su fecha, la agencia, la fuente
   pública y la fecha de consulta. Cuando una empresa no haya tenido cambios en
   la ventana, DEBE constar explícitamente que no los tuvo, para distinguir
-  "sin cambios" de "no consultado".
+  "sin cambios" de "no consultado". La fuente se busca en este orden de
+  prioridad y cada registro DEBE guardar cuál se usó: (1) comunicado o página
+  pública de la agencia calificadora; (2) prensa financiera, citando la nota
+  concreta y no el medio en general; (3) informe anual o trimestral de la propia
+  empresa ante el regulador. Un dato cuya fuente no se pueda citar NO DEBE
+  incorporarse a la tabla.
 - **FR-023**: El valor de mercado del patrimonio DEBE calcularse con el precio
   de cierre **no ajustado por dividendos**, mientras que la volatilidad del
   patrimonio DEBE calcularse con la serie de precios **ajustada por dividendos**
@@ -222,6 +259,13 @@ fecha de consulta.
 - **FR-025**: El sistema DEBE registrar las divisiones de acciones detectadas en
   el periodo para cada empresa, con su fecha y su factor, de modo que el ajuste
   del requisito anterior sea auditable.
+- **FR-026**: La lista nominal de las 30 empresas NO forma parte de esta
+  especificación. Se construye durante la implementación aplicando la regla de
+  FR-021, se guarda como dato de entrada versionado —con el grupo y el motivo de
+  inclusión de cada empresa— y DEBE revisarse y aprobarse antes de lanzar la
+  descarga completa. Como el reparto del grupo base depende de la calificación
+  de cada empresa, la tabla de ratings DEBE construirse **antes** que el
+  universo.
 
 ### Entidades clave
 
@@ -254,7 +298,8 @@ fecha de consulta.
   empresas aptas, al menos el 95 % de los días hábiles del periodo de 5 años con
   los tres insumos presentes a la vez.
 - **SC-002**: Borrar la carpeta de datos y volver a generarla reproduce el mismo
-  panel, con un solo comando y sin intervención manual.
+  panel para la ventana fija declarada, con un solo comando y sin intervención
+  manual. Dos ejecuciones separadas en el tiempo dan el mismo resultado.
 - **SC-003**: El 100 % de las observaciones contables del panel tiene fecha de
   publicación anterior o igual a la fecha de la fila, verificado por una prueba
   automática.
@@ -278,7 +323,10 @@ fecha de consulta.
   estadounidense, y la tasa libre de riesgo del banco central vía descarga
   pública. Ninguna requiere credenciales de pago. Esta decisión está fijada en
   la constitución y no se revisa en esta fase.
-- **Periodo**: los últimos 5 años contados desde la fecha de ejecución.
+- **Periodo**: ventana **fija** del **2021-11-25 al 2026-11-24** (cinco años
+  cerrados), declarada en la configuración del proyecto y nunca derivada de la
+  fecha de ejecución. Extender el estudio es un cambio deliberado de esa
+  configuración, que queda registrado en el historial de versiones.
 - **Calendario**: se toman como días hábiles los días en que cotizó el mercado
   estadounidense; la tasa libre de riesgo se arrastra desde su última
   publicación en los días en que no se publica.

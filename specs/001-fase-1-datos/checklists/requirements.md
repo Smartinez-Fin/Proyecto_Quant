@@ -53,6 +53,8 @@ Decisiones tomadas en la primera revisión:
    corregirlo, el patrimonio de una empresa que dividió 10:1 queda diez veces
    mal en todo el tramo anterior.
 
-Lo único que queda abierto es la **lista nominal de las 30 empresas**, que se
-fija en `/speckit-clarify`. El criterio de selección ya está escrito en FR-021,
-que es lo que la especificación debe garantizar.
+La **lista nominal de las 30 empresas** queda deliberadamente fuera de la
+especificación (FR-026): se construye durante la implementación aplicando la
+regla de FR-021, con la tabla de ratings como paso previo, y se revisa entonces.
+La especificación garantiza la regla y el reparto exacto, que es lo que le
+corresponde.
