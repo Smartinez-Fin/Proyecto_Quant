@@ -4,8 +4,9 @@
 
 **Creada**: 2026-11-25
 
-**Estado**: Borrador — aclaraciones resueltas; falta fijar la lista concreta de
-empresas en `/speckit-clarify`
+**Estado**: Aclarada y planificada. Sin marcadores pendientes. La lista nominal
+de empresas queda fuera de la especificación por decisión explícita (FR-026):
+se construye en la implementación, después de la tabla de ratings.
 
 **Entrada**: Descripción del usuario: "Fase 1 — Descarga y preparación de datos.
 Obtener y guardar los insumos del modelo Merton/KMV para 30 empresas no

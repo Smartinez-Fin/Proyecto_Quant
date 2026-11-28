@@ -40,11 +40,18 @@ src/
   data.py       # descarga y limpieza: precios (yfinance) y balances (SEC XBRL)
   merton.py     # modelo Merton/KMV: valor y volatilidad de activos, DD, PD
   analysis.py   # comparación vs ratings, eventos de estrés, métricas
+  <auxiliares>  # módulos de una sola responsabilidad, planos (sin subpaquetes)
 notebooks/      # exploración y validación
 app/            # dashboard Streamlit
 tests/          # pytest
+datos_entrada/  # universo, ratings y eventos — recopilación manual, SÍ versionada
 data/           # datos crudos y procesados — NO se sube a git
 ```
+
+Cada fase expone un único módulo público (`data.py`, `merton.py`, `analysis.py`)
+que puede apoyarse en módulos auxiliares dentro de `src/`. Añadir un auxiliar no
+requiere enmendar la constitución; crear un subpaquete anidado o una carpeta de
+primer nivel, sí (constitución v1.1.0).
 
 ## Reglas
 - **Sin look-ahead bias**: un balance solo se usa a partir de su fecha de

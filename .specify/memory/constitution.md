@@ -103,9 +103,17 @@ unidades que pase inadvertido.
   últimos 5 años.
 - **Exclusión obligatoria:** bancos y aseguradoras. En ellos la deuda es parte
   del negocio operativo y el modelo estructural pierde sentido.
-- **Estructura fija:** `src/data.py` (descarga y limpieza), `src/merton.py`
-  (modelo), `src/analysis.py` (validación y métricas), `notebooks/`
-  (exploración), `app/` (dashboard), `tests/` (pytest), `data/` (sin versionar).
+- **Estructura:** cada fase expone **un único módulo público** en `src/`:
+  `src/data.py` (descarga y limpieza), `src/merton.py` (modelo) y
+  `src/analysis.py` (validación y métricas). Ese módulo público PUEDE apoyarse
+  en módulos auxiliares de una sola responsabilidad situados directamente en
+  `src/`, **sin subpaquetes anidados**. El resto del árbol: `notebooks/`
+  (exploración), `app/` (dashboard), `tests/` (pytest), `datos_entrada/`
+  (recopilación manual, versionada) y `data/` (datos descargados, sin
+  versionar).
+
+  Añadir un módulo auxiliar en `src/` NO requiere enmienda. Crear un subpaquete
+  anidado o una carpeta nueva de primer nivel SÍ la requiere.
 - **Limitaciones declaradas:** lognormalidad sin saltos (subestima la PD de
   corto plazo), estructura de deuda resumida en un único punto de default, y
   solo empresas cotizadas. DEBEN mantenerse visibles en el README y no
@@ -158,4 +166,4 @@ look-ahead bias). Toda desviación DEBE corregirse o justificarse por escrito en
 el README antes de dar la fase por terminada. La complejidad añadida DEBE
 justificarse: a igualdad de resultado, se prefiere la solución más simple.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-25 | **Last Amended**: 2026-11-25
+**Version**: 1.1.0 | **Ratified**: 2026-11-25 | **Last Amended**: 2026-11-28
