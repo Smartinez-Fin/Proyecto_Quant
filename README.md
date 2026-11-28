@@ -149,10 +149,13 @@ Proyecto_Quant/
 ├── .env.example            # Plantilla de .env (SEC_USER_AGENT)
 ├── .specify/               # Spec Kit: constitución, plantillas, scripts PowerShell
 ├── .claude/skills/         # Spec Kit: comandos /speckit-* para Claude Code
+├── specs/                  # Especificación, plan y contratos de cada fase
+│   └── 001-fase-1-datos/
 ├── src/
-│   ├── data.py             # Descarga y limpieza de datos
+│   ├── data.py             # Descarga y limpieza: módulo público de la fase 1
 │   ├── merton.py           # Modelo Merton/KMV: V, σ_V, DD, PD
-│   └── analysis.py         # Validación y métricas
+│   ├── analysis.py         # Validación y métricas
+│   └── <auxiliares>.py     # Módulos de una sola responsabilidad (planos)
 ├── notebooks/
 │   └── analisis.ipynb      # Exploración y gráficos
 ├── app/
@@ -160,12 +163,18 @@ Proyecto_Quant/
 ├── tests/
 │   ├── test_smoke.py       # Test de humo (imports)
 │   └── test_merton.py      # Pruebas unitarias del modelo
+├── datos_entrada/          # Universo, ratings y eventos — manual, SÍ versionado
 └── data/                   # Datos descargados (no versionados)
 ```
 
-> Archivos que existen hoy: la estructura completa con `src/*.py` vacíos
-> (solo docstring) y `tests/test_smoke.py`. `analisis.ipynb`,
-> `streamlit_app.py` y `test_merton.py` se crean en las fases 2–4.
+> Archivos que existen hoy: la estructura con `src/*.py` vacíos (solo
+> docstring), `tests/test_smoke.py` y la especificación completa de la fase 1 en
+> `specs/001-fase-1-datos/`. `datos_entrada/`, los módulos auxiliares y el resto
+> de los tests se crean al implementar la fase 1; `analisis.ipynb`,
+> `streamlit_app.py` y `test_merton.py`, en las fases 2–4.
+>
+> Cada fase expone un único módulo público en `src/`, que puede apoyarse en
+> módulos auxiliares planos. Lo fija la constitución v1.1.0.
 
 ---
 
@@ -245,7 +254,60 @@ streamlit run app/streamlit_app.py
 > Sección para retomar el proyecto en un computador nuevo. Se actualiza al
 > cerrar cada sesión de trabajo. Se reemplazará por un resumen corto en la fase 4.
 
-### Estado actual (2026-11-25)
+### Estado actual (2026-11-28)
+
+**Fase 1 especificada, aclarada y planificada. Todavía sin código.**
+
+| | |
+|---|---|
+| Rama de trabajo | `fase-1-datos` |
+| Constitución | **v1.1.0** (ratificada 2026-11-25, enmendada 2026-11-28) |
+| Diseño de la fase 1 | `specs/001-fase-1-datos/`: 26 requisitos funcionales, 8 criterios de éxito, 10 casos límite, 9 entidades y 2 contratos |
+| Tests | 9/9 (solo los de humo: aún no hay código de la fase 1) |
+| En `main` | Hasta `5ef11dd`, vía PR #1, #2 y #3. El plan (`aec9328`) está en la rama, pendiente de PR |
+
+**Decisiones de diseño de la fase 1** (detalle en `spec.md`):
+
+- **Ventana fija** del 2021-11-25 al 2026-11-24. No se mueve con la fecha de
+  ejecución; es lo que hace reproducibles los resultados.
+- **Universo en dos grupos declarados**: 22 empresas por regla documentada
+  (3 de AA o superior, 5 de A, 8 de BBB, 4 de BB, 2 de B o inferior) y 8 de
+  estrés incluidas a propósito. El sesgo de supervivencia y el sobremuestreo
+  quedan declarados en los supuestos.
+- **Criterio de estrés**: rebaja de dos escalones o más, o cruce a grado
+  especulativo. Los ajustes de una sola muesca se descartan por ser ruido.
+- **Ratings**: calificación vigente más los cambios de la ventana, con fuente
+  en orden de prioridad (agencia → prensa → regulador) y fecha de consulta
+  obligatorias. Sin fuente citable, el dato no entra.
+- **Precios**: serie sin ajustar por dividendos para el patrimonio y ajustada
+  para la volatilidad, con `auto_adjust=False` explícito en yfinance.
+- **La lista nominal de las 30 empresas NO está en la especificación**
+  (FR-026): se construye al implementar, **después** de la tabla de ratings,
+  porque el reparto del grupo base depende de las calificaciones.
+
+**Hallazgos verificados contra las APIs reales** (`research.md`):
+
+- El campo `filed` existe en cada hecho de la SEC, así que el control de
+  look-ahead es exacto y no una aproximación.
+- **Las acciones en circulación no se reexpresan tras una división**: NVIDIA
+  pasa de 2.460 a 24.530 millones entre mayo y agosto de 2024 por su split
+  10:1. Sin aplicar el factor acumulado, su patrimonio saldría **diez veces
+  mal** en todo el tramo anterior. De ahí FR-024 y FR-025.
+- Un 404 por etiqueta XBRL es normal, no un fallo: cada empresa etiqueta lo
+  que le aplica, de ahí la cadena de respaldos con registro de la usada.
+- FRED no responde desde el entorno de Claude Code pero sí desde este PC, así
+  que la descarga real de la tasa hay que ejecutarla aquí. La alternativa del
+  Tesoro de EE. UU. queda investigada por si hiciera falta.
+
+**Enmienda a v1.1.0**: la estructura pasa de tres módulos fijos a un módulo
+público por fase más módulos auxiliares planos en `src/`, y se añade
+`datos_entrada/`. Motivo: 26 requisitos en un solo `src/data.py` darían unas
+900 líneas, lo que choca con el principio V.
+
+**Flujo de trabajo establecido**: nada se commitea en `main`; cada cambio va en
+una rama y entra por pull request.
+
+### Sesión del 2026-11-25 — entorno reconstruido tras formatear el PC
 
 **Fase 0 completada.** Commits en `main`:
 
@@ -257,7 +319,7 @@ streamlit run app/streamlit_app.py
 | `01be628` | Bitácora de desarrollo y guía para retomar el proyecto |
 | `10e0784` | Merge de `origin/main` |
 
-**Entorno reconstruido el 2026-11-25** tras formatear el PC (Windows 11):
+Entorno reconstruido en Windows 11:
 
 - Python **3.12.10** (`winget install --id Python.Python.3.12 -e`), pip 26.3,
   Git **2.56.1** (ya venía instalado).
@@ -355,10 +417,17 @@ Notas:
 
 ### Siguiente paso
 
-1. En Claude Code: `/speckit-constitution` usando las reglas de `CLAUDE.md`.
-2. `/speckit-specify` para la **fase 1 (descarga de datos)** → `/speckit-clarify`
-   (definir las 30 empresas y la fuente de ratings) → `/speckit-plan` →
-   `/speckit-tasks` → `/speckit-implement`.
+Hecho ya: `/speckit-constitution`, `/speckit-specify`, `/speckit-clarify` y
+`/speckit-plan` de la fase 1. Lo que queda:
+
+1. **`/speckit-tasks`**: convertir el plan en tareas ordenadas con sus
+   dependencias.
+2. **Trabajo manual, pasos 2 y 3 del plan**: recopilar los ratings con su
+   fuente y fecha de consulta, y a partir de ellos fijar el universo de 30
+   empresas. No es automatizable: FR-022 exige fuente pública citable.
+3. **`/speckit-implement`**: escribir el código siguiendo el orden del plan.
+4. Al cerrar la fase: `pytest` completo, actualizar esta bitácora y abrir el
+   pull request a `main`.
 
 ## Próximos pasos
 
