@@ -116,7 +116,9 @@ specs/001-fase-1-datos/
 src/
 ├── __init__.py
 ├── config.py                # Ventana fija, rutas, umbrales, etiquetas XBRL
+├── errores.py               # Jerarquía de excepciones del proyecto
 ├── data.py                  # Orquestador y CLI: `python -m src.data`
+├── entradas.py              # Carga y validación de datos_entrada/
 ├── sec.py                   # Cliente XBRL de la SEC, con el limitador incluido
 ├── precios.py               # yfinance: cierre, cierre ajustado y divisiones
 ├── tasas.py                 # Tasa libre de riesgo (fuente aislada en una función)
@@ -149,6 +151,8 @@ data/                        # NO versionada; regenerable con un comando
 tests/
 ├── __init__.py
 ├── test_smoke.py            # Ya existe: 9 tests de importación
+├── test_entradas.py         # Universo, reparto por rating, fuentes citadas
+├── test_data.py             # CLI, códigos de salida, descarga interrumpida
 ├── test_vigencia.py         # Sin look-ahead, arrastre, reexpresiones
 ├── test_splits.py           # Factor acumulado; caso real de NVIDIA
 ├── test_panel.py            # Ensamblado, valores imposibles, duplicados
@@ -201,7 +205,7 @@ explícitamente los módulos auxiliares planos en `src/` y la carpeta
 
 | Decisión | Por qué es necesaria | Alternativa más simple, y por qué se rechazó |
 |---|---|---|
-| Nueve módulos en `src/` en lugar de concentrar la fase en `src/data.py` | Los 26 requisitos funcionales en un solo archivo darían un módulo de unas 900 líneas que mezclaría descarga, lógica temporal, ajustes y validación | Un único `src/data.py`: rechazado porque choca con el principio V ("funciones pequeñas, con una sola responsabilidad") y porque impediría probar la lógica temporal y la de divisiones sin arrastrar el código de red. `src/data.py` sigue siendo el único punto de entrada público |
+| Once módulos en `src/` en lugar de concentrar la fase en `src/data.py` | Los 26 requisitos funcionales en un solo archivo darían un módulo de unas 900 líneas que mezclaría descarga, lógica temporal, ajustes y validación | Un único `src/data.py`: rechazado porque choca con el principio V ("funciones pequeñas, con una sola responsabilidad") y porque impediría probar la lógica temporal y la de divisiones sin arrastrar el código de red. `src/data.py` sigue siendo el único punto de entrada público |
 | Carpeta `datos_entrada/`, versionada | FR-019 exige que ratings y eventos de estrés estén en el control de versiones, y `data/` está excluida de git por el principio III | Guardarlos dentro de `data/`: rechazado porque se perderían al regenerar los datos y no viajarían con el repositorio. Guardarlos en la raíz: rechazado por desorden |
 | Archivo nuevo `pytest.ini` (no requiere enmienda: es configuración de raíz, no estructura de código) | Hace falta registrar el marcador `red` y excluirlo por defecto, para que `pytest` pase sin conexión | Pasar el parámetro a mano en cada ejecución: rechazado porque dependería de recordarlo, y un test que falla por falta de red acaba ignorándose |
 
