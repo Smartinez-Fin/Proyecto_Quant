@@ -76,7 +76,7 @@ Clave: `(ticker, fecha)`.
 |---|---|---|
 | `sec/<CIK>_<etiqueta>.json` | JSON | Respuesta literal de `companyconcept`, sin tocar |
 | `precios/<TICKER>.parquet` | Parquet | Lo que devolvió yfinance, sin tocar |
-| `tasas/tasa.csv` | CSV | Lo que devolvió la fuente, sin tocar |
+| `tasas/tasa.csv` | CSV | Lo que devolvió la fuente, sin tocar. Formato real verificado: cabecera `observation_date,DGS1`, fechas ISO, valores en porcentaje y **días sin publicación como cadena vacía** (D-11) |
 
 **Se guarda sin transformar a propósito.** Permite reprocesar sin volver a
 descargar y deja comprobar, si un número sorprende, si el error es de la fuente

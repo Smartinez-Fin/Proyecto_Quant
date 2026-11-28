@@ -163,6 +163,13 @@ cotizó, sin filas rellenadas (FR-012).
   modo que no se confunda con un dato observado (FR-012).
 - Se admite `r_anual` negativa: ha ocurrido en otros mercados y no es un error
   de datos.
+- La serie DEBE cubrir todos los días en que cotizó la bolsa, incluidos los que
+  el mercado de bonos cerró (Columbus Day y Veterans Day): en esos días la tasa
+  se arrastra desde la última publicación. Son unos diez días en la ventana,
+  verificados en D-11 de research.md.
+- La descarga DEBE incluir un margen previo al inicio de la ventana, porque el
+  primer día (2021-11-25, Acción de Gracias) no tiene tasa publicada y el
+  arrastre necesita un valor anterior del que partir.
 
 ---
 

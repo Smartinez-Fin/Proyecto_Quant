@@ -239,6 +239,68 @@ quien lo produce. Ir al Tesoro no degradaría la calidad de la fuente.
 
 ---
 
+## D-11 — Formato real del CSV de FRED, verificado sobre el archivo descargado
+
+**Fecha**: 2026-11-28. El autor descargó el CSV desde su navegador y se copió a
+`data/crudo/tasas/tasa.csv`. Lo que sigue está comprobado sobre ese archivo, no
+supuesto.
+
+| Característica | Valor real |
+|---|---|
+| Cabecera | **`observation_date,DGS1`** |
+| Formato de fecha | ISO (`2026-11-24`); no hay que convertir nada |
+| Unidades | Porcentaje (`4.59` = 4,59 %): hay que dividir por 100 |
+| Dato ausente | **Cadena vacía**, no el marcador `.` |
+| Fines de semana | No aparecen: 0 filas |
+| Cobertura | 16.932 observaciones desde 1962-01-02 hasta 2026-11-25 |
+| En la ventana | 1.304 filas, una por cada día de lunes a viernes, sin ninguna fecha omitida |
+
+**Dos suposiciones previas que resultaron falsas** y que habrían roto el parser:
+
+1. La columna de fecha **no** se llama `DATE`, sino `observation_date`.
+2. Los días sin publicación **no** se marcan con `.` ni se omiten: la fila está
+   presente con el valor vacío. Un parser que buscara `.` los trataría como
+   numéricos y fallaría al convertir.
+
+### Por qué el arrastre es obligatorio y no cosmético
+
+De los 1.304 días de lunes a viernes de la ventana, **56 no tienen tasa**
+(4,3 %). La mayoría son festivos en los que también cierra la bolsa, así que no
+habría precios y el panel no generaría fila de todos modos.
+
+Pero hay un subconjunto en el que **la bolsa abre y el mercado de bonos cierra**,
+comprobado sobre el archivo:
+
+| Fecha | Día | Tasa |
+|---|---|---|
+| 2022-10-10, 2024-10-14, 2025-10-13 | Columbus Day | vacía |
+| 2022-11-11, 2024-11-11, 2025-11-11 | Veterans Day | vacía |
+
+Son unos diez días en la ventana. Sin arrastre, esos días quedarían sin tasa
+habiendo precio, y el panel perdería ~10 filas por empresa. Es exactamente el
+caso límite 4 de la especificación ("días sin precio frente a días sin tasa"),
+y ahora tiene fechas reales con las que escribir el test.
+
+### El primer día de la ventana no tiene tasa
+
+`2021-11-25` fue **Acción de Gracias**, y la ventana empieza justo ahí. Su tasa
+está vacía. En este caso concreto no hay daño, porque la bolsa también cerró y
+no habrá precios. Pero deja un requisito claro:
+
+> **La descarga de la tasa DEBE leer un margen previo al inicio de la ventana**
+> (basta una semana natural) para que el arrastre pueda cubrir el primer día si
+> algún día cayera en un festivo de bonos con bolsa abierta. El archivo tiene
+> `2021-11-24 = 0.24` disponible para ese fin.
+
+### Validación cruzada con el Tesoro
+
+El valor de FRED para `2026-11-25` es **4,56**, idéntico a la columna `"1 Yr"`
+del CSV del Tesoro para `11/25/2026` que se sondeó en D-08. Confirma que `DGS1`
+es la misma serie que publica el Tesoro, y por tanto que la contingencia de D-08
+es un sustituto equivalente y no una aproximación.
+
+---
+
 ## D-09 — Almacenamiento y reproducibilidad
 
 **Decisión**: datos crudos tal como llegan de la fuente, datos procesados en

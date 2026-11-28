@@ -132,14 +132,22 @@ obtener una tabla diaria continua con las tres cantidades y unidades coherentes.
   recuento. Cubre el caso límite **9 (dato duplicado para la misma fecha)**
 - [ ] T015 [P] [US1] Crear `src/tasas.py` con
   `descargar_tasa_libre_riesgo`, **única función que conoce la fuente de la
-  tasa**, devolviendo la tasa en forma decimal y marcando el arrastre. Campos
-  restringidos: `data-model.md` → `Observación de tasa libre de riesgo.r_anual`
-  (decimal, nunca porcentaje) y `.arrastrada`
-- [ ] T016 [P] [US1] Crear `tests/test_tasas.py`: el parseo convierte `4.61` en
-  `0.0461`; los días hábiles sin publicación arrastran el último valor y quedan
-  marcados; una tasa negativa se acepta; y si la fuente no responde se lanza
-  `FuenteInaccesible` **sin valor por defecto ni tasa constante de reserva**.
-  Cubre el caso límite **4 (días sin precio frente a días sin tasa)**
+  tasa**. Formato real verificado en D-11 de research.md: columnas
+  `observation_date,DGS1`, fechas ISO, valores en porcentaje y **días sin
+  publicación como cadena vacía, no como `.` ni como fila omitida**. Debe leer
+  un **margen de una semana natural antes de `config.VENTANA_INICIO`** para que
+  el arrastre pueda cubrir el primer día de la ventana. Campos restringidos:
+  `data-model.md` → `Observación de tasa libre de riesgo.r_anual` (decimal,
+  nunca porcentaje) y `.arrastrada`
+- [ ] T016 [P] [US1] Crear `tests/test_tasas.py`: el parseo lee la columna
+  `observation_date` y convierte `4.61` en `0.0461`; una **cadena vacía** se
+  trata como ausencia y no como cero; el arrastre cubre los días de bolsa
+  abierta y bonos cerrados, con las fechas reales **2025-10-13 y 2024-11-11**
+  (Columbus Day y Veterans Day), quedando marcados con `arrastrada = True`; el
+  margen previo permite resolver el primer día de la ventana; una tasa negativa
+  se acepta; y si la fuente no responde se lanza `FuenteInaccesible` **sin valor
+  por defecto ni tasa constante de reserva**. Cubre el caso límite **4 (días sin
+  precio frente a días sin tasa)**
 
 ### Lógica delicada (funciones puras, sin red)
 
